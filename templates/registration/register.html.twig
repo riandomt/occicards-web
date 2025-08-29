@@ -1,0 +1,63 @@
+{# templates/registration/register.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block body %}
+  {% for flash_error in app.flashes('verify_email_error') %}
+    <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
+  {% endfor %}
+
+  <h1 class="mb-4">Créer un compte</h1>
+
+  {# erreurs globales du formulaire #}
+  {{ form_errors(registrationForm) }}
+
+  {{ form_start(registrationForm) }}
+    <div class="row g-3">
+      <div class="col-md-6">
+        {{ form_row(registrationForm.firstname, {
+          label: 'Prénom'
+        }) }}
+      </div>
+      <div class="col-md-6">
+        {{ form_row(registrationForm.lastname, {
+          label: 'Nom'
+        }) }}
+      </div>
+
+      <div class="col-12">
+        {{ form_row(registrationForm.email, {
+          label: 'Email'
+        }) }}
+      </div>
+
+      <div class="col-12">
+        {{ form_row(registrationForm.plainPassword, {
+          label: 'Mot de passe'
+        }) }}
+      </div>
+
+      {# Radios rôle Étudiant / Enseignant — champ non mappé "roleChoice" dans le FormType #}
+      <div class="col-12">
+        {{ form_label(registrationForm.roleChoice, 'Je m’inscris en tant que :') }}
+        <div class="ms-3">
+          {{ form_widget(registrationForm.roleChoice) }}
+          {{ form_errors(registrationForm.roleChoice) }}
+        </div>
+      </div>
+
+      <div class="col-12">
+        {{ form_row(registrationForm.agreeTerms, {
+          label: "J’accepte les CGU"
+        }) }}
+      </div>
+
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">
+          S’inscrire
+        </button>
+      </div>
+    </div>
+  {{ form_end(registrationForm) }}
+{% endblock %}
