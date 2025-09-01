@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello FolderController!{% endblock %}
+
+{% block body %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Nom</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for folder in folders %}
+                    <td>
+                        <a href="" class="text-black">{{ folder.name }}</a>
+                    </td>
+                    <td>
+                        <div class="d-flex align-center justify-around">
+                            <a href="" class="btn btn-primary">Modifier</a>
+                            {% include 'folder/delete.html.twig' %}
+                        </div>
+                    </td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="" class="btn btn-primary">Créer un dossier</a>
+{% endblock %}

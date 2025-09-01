@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -15,45 +17,48 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @var string The firstname of person
-     */
+    /** @var string The firstname of person */
     #[ORM\Column(length: 50)]
     private ?string $firstname = null;
 
-    /**
-     * @var string The lastname of person
-     */
+    /** @var string The lastname of person */
     #[ORM\Column(length: 50)]
     private ?string $lastname = null;
 
     #[ORM\Column(length: 180)]
     private ?string $email = null;
 
-    /**
-     * @var list<string> The user roles
-     */
-    #[ORM\Column]
+    /** @var list<string> The user roles */
+    #[ORM\Column(type: 'json')]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
+    /** @var string The hashed password */
+    #[ORM\Column(type: 'string')]
     private ?string $password = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'boolean')]
     private bool $isVerified = false;
+
+    /** @var Collection<int, Folder> */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Folder::class, cascade: ['remove'], orphanRemoval: true)]
+    private Collection $folders;
+
+    public function __construct()
+    {
+        $this->folders = new ArrayCollection();
+    }
+
+    // --- Getters/Setters ---
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-        public function getLastname(): ?string
+    public function getLastname(): ?string
     {
         return $this->lastname;
     }
@@ -61,7 +66,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastname(string $lastname): static
     {
         $this->lastname = $lastname;
-
         return $this;
     }
 
@@ -73,7 +77,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFirstname(string $firstname): static
     {
         $this->firstname = $firstname;
-
         return $this;
     }
 
@@ -85,45 +88,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
+    // --- Security ---
+
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
-    /**
-     * @see UserInterface
-     */
+    /** @return list<string> */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
+        return array_values(array_unique($roles));
     }
 
-    /**
-     * @param list<string> $roles
-     */
+    /** @param list<string> $roles */
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
-
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): ?string
     {
         return $this->password;
@@ -132,7 +121,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
         return $this;
     }
 
@@ -142,8 +130,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
-
+        if ($this->password !== null) {
+            $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
+        }
         return $data;
     }
 
@@ -161,7 +150,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): static
     {
         $this->isVerified = $isVerified;
+        return $this;
+    }
 
+    // --- Folders relation ---
+
+    /** @return Collection<int, Folder> */
+    public function getFolders(): Collection
+    {
+        return $this->folders;
+    }
+
+    public function addFolder(Folder $folder): static
+    {
+        if (!$this->folders->contains($folder)) {
+            $this->folders->add($folder);
+            $folder->setUser($this);
+        }
+        return $this;
+    }
+
+    public function removeFolder(Folder $folder): static
+    {
+        if ($this->folders->removeElement($folder)) {
+            if ($folder->getUser() === $this) {
+                $folder->setUser(null); // orphanRemoval => supprimé si détaché
+            }
+        }
         return $this;
     }
 }
