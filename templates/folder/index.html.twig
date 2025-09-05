@@ -1,8 +1,14 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello FolderController!{% endblock %}
+{% block title %}Gestionnaire de fichiers{% endblock %}
 
 {% block body %}
+<div class="m-5">
+    <div class="border d-flex align-items-center p-2">
+        <i class="btn bi bi-arrow-left-circle"></i>
+        <a href="" class="btn border mb-0">{{ path }}</a>
+    </div>
+
     <table class="table">
         <thead>
             <tr>
@@ -10,22 +16,34 @@
                 <th scope="col">Actions</th>
             </tr>
         </thead>
-        <tbody>
-            <tr>
-                {% for folder in folders %}
-                    <td>
-                        <a href="" class="text-black">{{ folder.name }}</a>
-                    </td>
-                    <td>
-                        <div class="d-flex align-center justify-around">
-                            <a href="" class="btn btn-primary">Modifier</a>
-                            {% include 'folder/delete.html.twig' %}
-                        </div>
-                    </td>
-                {% endfor %}
-            </tr>
+        <tbody>            
+            {% for folder in folders %}
+                {% if folder.name != 'home' %}
+                    <tr>
+                        <td>
+                            <a href="{{ path('app_folder_index', {id: folder.id}) }}" class="text-black text-decoration-none"><strong>{{ folder.name }}</strong></a>
+                        </td>
+                        <td class="d-flex align-items-center gap-2">
+                            <a href="" class="btn btn-primary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% include 'folder/delete.html.twig' with { folder: folder } %}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% else %}
+                <tr>
+                    <td colspan="2" class="text-muted">Aucun fichier</td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
 
-    <a href="" class="btn btn-primary">Créer un dossier</a>
+    <button class="btn btn-primary" data-bs-toggle="modal"
+            data-bs-target="#createFolderModal">
+        Créer un dossier
+    </button>
+</div>
+
+{% include 'folder/create.html.twig' %}
 {% endblock %}

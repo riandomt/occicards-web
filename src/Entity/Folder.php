@@ -151,4 +151,29 @@ class Folder
         $this->updated_at = $updated_at;
         return $this;
     }
+
+    public function isRoot(): bool
+    {
+        return $this->parent === null;
+    }
+
+    public function isHome(): bool
+    {
+        return $this->isRoot() && mb_strtolower($this->name ?? '') === 'home';
+    }
+
+    public function getPath(): string
+    {
+        $parts = [];
+        $cur = $this;
+        while ($cur) {
+            $parts[] = $cur->getName();
+            $cur = $cur->getParent();
+        }
+        $parts = array_reverse($parts);
+        if (!empty($parts) && \mb_strtolower($parts[0]) !== 'home') {
+        }
+        return '/' . implode('/', $parts);
+    }
+
 }

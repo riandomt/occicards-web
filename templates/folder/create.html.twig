@@ -1,0 +1,52 @@
+<div
+    class="modal fade"
+    id="createFolderModal"
+    tabindex="-1"
+    aria-labelledby="createFolder"
+    aria-hidden="true"
+>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">
+                    Nouveau dossier
+                </h5>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                ></button>
+            </div>
+            <form action="{{ path('app_folder_store') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{
+                            form_start(form, {
+                                action: path("app_folder_store"),
+                                method: "POST",
+                                attr: { id: "create-folder-form" }
+                            })
+                        }}
+                        {{ form_row(form.name, { label: "Nom du dossier" }) }}
+                        {{ form_widget(form.parent_id, { value: current.id }) }}
+                        {# si tu veux mettre user_id aussi : #}
+                        {{ form_widget(form.user_id, { value: app.user.id }) }}       
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button
+                        type="reset"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">Créer</button>
+                {{ form_end(form) }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

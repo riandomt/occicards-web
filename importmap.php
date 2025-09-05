@@ -25,4 +25,7 @@ return [
     '@hotwired/turbo' => [
         'version' => '7.3.0',
     ],
+    'lodash' => [
+        'version' => '4.17.21',
+    ],
 ];
