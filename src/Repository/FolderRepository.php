@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Repository;
 
 use App\Entity\Folder;
@@ -14,151 +13,75 @@ class FolderRepository extends ServiceEntityRepository
         parent::__construct($registry, Folder::class);
     }
 
-     /**
-     * Retourne le dossier "home" d'un utilisateur
+    /**
+     * Retourne le(s) dossier(s) "home" d’un utilisateur
+     *
+     * @param User $user
+     * @return Folder[]
      */
-    public function findHomeForUser(User $user): ?Folder
+    public function findHomeByUser(User $user): array
     {
         return $this->createQueryBuilder('f')
-            ->andWhere('f.user = :user')
-            ->andWhere('f.parent IS NULL')
-            ->andWhere('LOWER(f.name) = :home')
+            ->where('f.user = :user')
+            ->andWhere('f.name = :home')
             ->setParameter('user', $user)
             ->setParameter('home', 'home')
-            ->setMaxResults(1)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getResult(); // Retourne un tableau de Folder[]
     }
 
     /**
-     * MÉTHODE CENTRALE : construit l'arbo des dossiers de l'utilisateur et renvoie du JSON.
-     * - 1 seule requête ORM (QueryBuilder) pour récupérer id, name, parent_id
-     * - assemblage en mémoire (itératif, sans récursion)
-     * - encodage JSON joliment formaté
-     */
-    public function getUserFolderTreeJson(int $userId): string
-    {
-        // 1) Charger les lignes depuis l’ORM (pas de SQL brut)
-        $rows = $this->fetchRowsOrm($userId);
-
-        // 2) Préparer les structures en mémoire
-        [$nodes, $parents] = $this->prepareNodes($rows);
-        // 3) Lier parent → enfants (modifie $nodes par référence)
-        $this->linkNodes($nodes, $parents);
-        
-        // 4) Récupérer les ids racines (parent_id = NULL)
-        $roots = $this->collectRoots($parents);
-
-        // 5) Encoder uniquement les racines (forêt) en JSON
-        return $this->encodeToJson($nodes, $roots);
-    }
-
-    /* ======================== Méthodes privées ======================== */
-
-    /**
-     * 1) ORM QueryBuilder : récupère un tableau associatif
-     *    [
-     *      ['id' => 1, 'name' => 'home',  'parent_id' => null],
-     *      ['id' => 2, 'name' => 'dir1',  'parent_id' => 1],
-     *      ...
-     *    ]
+     * Retourne les enfants directs d’un dossier
      *
-     *  Remarques :
-     *  - IDENTITY(f.user) = :uid permet de filtrer par l'id utilisateur (int),
-     *    sans avoir besoin de passer l'objet User.
-     *  - IDENTITY(f.parent) AS parent_id donne la FK brute (int ou NULL).
+     * @param User $user
+     * @param Folder $parent
+     * @return Folder[]
      */
-    private function fetchRowsOrm(int $userId): array
+    public function findChildrenByParent(User $user, Folder $parent): array
     {
         return $this->createQueryBuilder('f')
-            ->select('f.id AS id, f.name AS name, IDENTITY(f.parent) AS parent_id')
-            ->andWhere('IDENTITY(f.user) = :uid')
-            ->setParameter('uid', $userId)
-            // Tri simple et portable : parent d’abord, puis nom
-            // (sur MySQL, NULL sort en premier avec ASC ; sur PG, c'est correct aussi
-            // pour notre logique d’assemblage qui ne dépend pas de l’ordre strict)
-            ->orderBy('f.parent', 'ASC')
-            ->addOrderBy('f.name', 'ASC')
+            ->where('f.user = :user')
+            ->andWhere('f.parent = :parent')
+            ->setParameter('user', $user)
+            ->setParameter('parent', $parent)
             ->getQuery()
-            ->getArrayResult();
+            ->getResult(); // Retourne un tableau de Folder[]
     }
 
     /**
-     * 2) Prépare les structures :
-     *    - $nodes   : id => ['id','name','type','children'=>[]]
-     *    - $parents : id => parent_id|null
+     * Construit la structure récursive d’un dossier et de ses enfants
      *
-     *  IMPORTANT : NE PAS caster un parent_id NULL en (int), sinon NULL devient 0.
+     * @param User $user
+     * @param Folder $parent
+     * @return array
      */
-    private function prepareNodes(array $rows): array
+    public function getFolderStructure(User $user, Folder $parent): array
     {
-        $nodes   = [];
-        $parents = [];
-
-        foreach ($rows as $row) {
-            $id = (int) $row['id'];
-            $parentId = $row['parent_id'] !== null ? (int) $row['parent_id'] : null;
-
-            $nodes[$id] = [
-                'id'       => $id,
-                'name'     => (string) $row['name'],
-                'type'     => 'folder',
-                'children' => [], // rempli à l’étape suivante
-            ];
-            $parents[$id] = $parentId;
-        }
-
-        return [$nodes, $parents];
+        return $this->buildFolderStructure($user, $parent);
     }
 
     /**
-     * 3) Chaînage parent → enfants
-     *    - Passe $nodes PAR RÉFÉRENCE (sinon les ajouts sont perdus à la sortie)
-     *    - Ajoute les enfants PAR RÉFÉRENCE (évite de dupliquer les sous-arbres)
+     * Méthode récursive pour construire un arbre de dossiers
+     *
+     * @param User $user
+     * @param Folder $folder
+     * @return array
      */
-    private function linkNodes(array &$nodes, array $parents): void
+    private function buildFolderStructure(User $user, Folder $folder): array
     {
-        foreach ($parents as $id => $parentId) {
-            if ($parentId === null) {
-                // Pas de parent => racine
-                continue;
-            }
-            if (isset($nodes[$parentId])) {
-                // Lien par référence : le sous-arbre reste partagé (pas de copies)
-                $nodes[$parentId]['children'][] = &$nodes[$id];
-            }
-            // Si le parent n'existe pas (donnée orpheline), on ignore simplement l’enfant.
-            // Option : logger l’orphelin si tu veux surveiller la qualité de données.
-        }
-    }
+        $folderInfo = [
+            'id' => $folder->getId(),
+            'name' => $folder->getName(),
+            'type' => 'folder',
+            'children' => []
+        ];
 
-    /**
-     * 4) Collecte les ids des racines (parent_id NULL)
-     */
-    private function collectRoots(array $parents): array
-    {
-        $roots = [];
-        foreach ($parents as $id => $parentId) {
-            if ($parentId === null) {
-                $roots[] = $id;
-            }
-        }
-        return $roots;
-    }
+        $children = $this->findChildrenByParent($user, $folder);
 
-    /**
-     * 5) Encode uniquement les racines en JSON.
-     *    - On ne renvoie pas l’intégralité de $nodes, mais la "forêt" des racines.
-     *    - Chez toi, il n’y a qu’une racine (“home”) par utilisateur.
-     */
-    private function encodeToJson(array $nodes, array $roots): string
-    {
-        $forest = [];
-        foreach ($roots as $rootId) {
-            if (isset($nodes[$rootId])) {
-                $forest[] = $nodes[$rootId];
-            }
+        foreach ($children as $childFolder) {
+            $folderInfo['children'][] = $this->buildFolderStructure($user, $childFolder);
         }
-        return json_encode($forest, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+        return $folderInfo;
     }
 }

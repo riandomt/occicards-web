@@ -22,16 +22,16 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         {{
-                            form_start(form, {
+                            form_start(createForm, {
                                 action: path("app_folder_store"),
                                 method: "POST",
                                 attr: { id: "create-folder-form" }
                             })
                         }}
-                        {{ form_row(form.name, { label: "Nom du dossier" }) }}
-                        {{ form_widget(form.parent_id, { value: current.id }) }}
+                        {{ form_row(createForm.name, { label: "Nom du dossier" }) }}
+                        {{ form_widget(createForm.parent_id, { value: currentFolder.id }) }}
                         {# si tu veux mettre user_id aussi : #}
-                        {{ form_widget(form.user_id, { value: app.user.id }) }}       
+                        {{ form_widget(createForm.user_id, { value: app.user.id }) }}       
                     </div>
                 </div>
 
@@ -44,7 +44,7 @@
                         Annuler
                     </button>
                     <button type="submit" class="btn btn-primary">Créer</button>
-                {{ form_end(form) }}
+                {{ form_end(createForm) }}
                 </div>
             </form>
         </div>
