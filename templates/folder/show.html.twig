@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestionnaire de fichier
+{% endblock %}
+
+{% block body %}
+	<table>
+		<thead>
+			<tr>
+				<th>Nom</th>
+				<th>Date de création</th>
+				<th>Date de modification</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for child in children %}
+				<tr>
+					<td>{{ child.name }}</td>
+					<td>{{ child.createdAt|date('d/m/Y H:i') }}</td>
+					<td>{{ child.updatedAt|date('d/m/Y H:i') }}</td>
+					<td>
+                        {% include "folder/update.html.twig" %}
+                        {% include "folder/delete.html.twig" %}
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% include "folder/create.html.twig" %}
+{% endblock %}

@@ -6,6 +6,7 @@ use App\Repository\FolderRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: FolderRepository::class)]
 #[ORM\Table(name: 'folder')]
@@ -30,12 +31,22 @@ class Folder
     #[ORM\OneToMany(mappedBy: 'parent', targetEntity: self::class, cascade: ['remove'], orphanRemoval: true)]
     private Collection $children;
 
-    // Propriétaire : un utilisateur (non null)
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'folders')]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', onDelete: 'CASCADE', nullable: false)]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le nom du dossier est obligatoire.")]
+    #[Assert\Length(
+        min: 3,
+        max: 30,
+        minMessage: '3 caractères minimum',
+        maxMessage: '30 caractères maximum'
+    )]
+    #[Assert\Regex(
+        pattern: '/^(?!-)(?![0-9])[a-z0-9]+(?:-[a-z0-9]+)*$/',
+        message: "Nom invalide : lettres minuscules, chiffres et tirets uniquement, sans chiffre ou tiret au début/fin."
+    )]
     private ?string $name = null;
 
     #[ORM\Column(type: 'datetime_immutable')]

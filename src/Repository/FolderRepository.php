@@ -13,75 +13,26 @@ class FolderRepository extends ServiceEntityRepository
         parent::__construct($registry, Folder::class);
     }
 
-    /**
-     * Retourne le(s) dossier(s) "home" d’un utilisateur
-     *
-     * @param User $user
-     * @return Folder[]
-     */
-    public function findHomeByUser(User $user): array
+    public function findHomeByUser(User $user): Folder
     {
         return $this->createQueryBuilder('f')
-            ->where('f.user = :user')
-            ->andWhere('f.name = :home')
-            ->setParameter('user', $user)
-            ->setParameter('home', 'home')
-            ->getQuery()
-            ->getResult(); // Retourne un tableau de Folder[]
+        ->where('f.name LIKE :home')
+        ->andWhere('f.user = :user')
+        ->setParameter('home', '%home%')
+        ->setParameter('user',$user)
+        ->getQuery()
+        ->getOneOrNullResult();
     }
 
-    /**
-     * Retourne les enfants directs d’un dossier
-     *
-     * @param User $user
-     * @param Folder $parent
-     * @return Folder[]
-     */
-    public function findChildrenByParent(User $user, Folder $parent): array
-    {
-        return $this->createQueryBuilder('f')
-            ->where('f.user = :user')
-            ->andWhere('f.parent = :parent')
-            ->setParameter('user', $user)
-            ->setParameter('parent', $parent)
-            ->getQuery()
-            ->getResult(); // Retourne un tableau de Folder[]
-    }
+    public function findWithChildren(int $id): Folder
+{
+    return $this->createQueryBuilder('f')
+        ->leftJoin('f.children', 'c')
+        ->addSelect('c')
+        ->where('f.id = :id')
+        ->setParameter('id', $id)
+        ->getQuery()
+        ->getOneOrNullResult();
+}
 
-    /**
-     * Construit la structure récursive d’un dossier et de ses enfants
-     *
-     * @param User $user
-     * @param Folder $parent
-     * @return array
-     */
-    public function getFolderStructure(User $user, Folder $parent): array
-    {
-        return $this->buildFolderStructure($user, $parent);
-    }
-
-    /**
-     * Méthode récursive pour construire un arbre de dossiers
-     *
-     * @param User $user
-     * @param Folder $folder
-     * @return array
-     */
-    private function buildFolderStructure(User $user, Folder $folder): array
-    {
-        $folderInfo = [
-            'id' => $folder->getId(),
-            'name' => $folder->getName(),
-            'type' => 'folder',
-            'children' => []
-        ];
-
-        $children = $this->findChildrenByParent($user, $folder);
-
-        foreach ($children as $childFolder) {
-            $folderInfo['children'][] = $this->buildFolderStructure($user, $childFolder);
-        }
-
-        return $folderInfo;
-    }
 }
