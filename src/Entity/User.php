@@ -46,6 +46,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Folder::class, cascade: ['remove'], orphanRemoval: true)]
     private Collection $folders;
 
+    /**
+     * @var Collection<int, Deck>
+     */
+    #[ORM\OneToMany(targetEntity: Deck::class, mappedBy: 'user')]
+    private Collection $decks;
+
     public function __construct()
     {
         $this->folders = new ArrayCollection();
