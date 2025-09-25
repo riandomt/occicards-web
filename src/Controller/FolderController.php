@@ -12,25 +12,23 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class FolderController extends AbstractController
 {
+    #[IsGranted('ROLE_USER')]
     #[Route('/folder', name: 'app_folder_index', methods: ['GET'])]
     public function index(FolderRepository $repo): Response
     {
         $user = $this->getUser();
         $homeFolder = $repo->findHomeByUser($user);
 
-        if (!$homeFolder) {
-            throw $this->createNotFoundException("Pas de dossier home trouvé.");
-        }
-
         return $this->redirectToRoute('app_folder_show', [
             'id' => $homeFolder->getId()
         ]);
     }
 
-
+    #[IsGranted('ROLE_USER')]
     #[Route('/folder/{id}/show', name: 'app_folder_show', methods: ['GET'])]
     public function show(int $id, FolderRepository $repo): Response
     {
@@ -47,6 +45,7 @@ final class FolderController extends AbstractController
 
         return $this->render('folder/show.html.twig', [
             'controller_name' => 'FolderController',
+            'pathElements' => $folder->getPathElements(),
             'user' => $user,
             'folder' => $folder,
             'children' => $children,
@@ -55,6 +54,7 @@ final class FolderController extends AbstractController
         ]);
     }
 
+    #[IsGranted('ROLE_USER')]
     #[Route('/folder/store', name: 'app_folder_store', methods: ['POST'])]
     public function store(Request $request, EntityManagerInterface $em)
     {
@@ -82,13 +82,17 @@ final class FolderController extends AbstractController
             $em->persist($folder);
             $em->flush();
 
+            $this->addFlash('success', 'Le dossier a été créé avec succès.');
+        } else {
+            foreach ($form->getErrors(true) as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
         }
 
         return $this->redirectToRoute('app_folder_index');
     }
 
-
-
+    #[IsGranted('ROLE_USER')]
     #[Route('/folder/{id}/update', name: 'app_folder_update', methods: ['POST', 'PUT'])]
     public function update(Folder $folder, Request $request, EntityManagerInterface $em)
     {
@@ -98,24 +102,32 @@ final class FolderController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $folder->setUpdatedAt(new DateTimeImmutable());
             $em->flush();
+            $this->addFlash('success', 'Le dossier a été modifié avec succès.');
+        } else {
+            foreach ($form->getErrors(true) as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
         }
 
         return $this->redirectToRoute('app_folder_index');
     }
 
+    #[IsGranted('ROLE_USER')]
     #[Route('/folder/{id}/delete', name: 'app_folder_delete', methods: ['POST', 'DELETE'])]
     public function delete(
         Request $request,
         Folder $folder,
-        EntityManagerInterface $em,
-        FolderRepository $repo
+        EntityManagerInterface $em
     ): Response {
-
         if ($this->isCsrfTokenValid('delete' . $folder->getId(), $request->request->get('_token'))) {
             $em->remove($folder);
             $em->flush();
+            $this->addFlash('success', 'Le dossier a été supprimé avec succès.');
+        } else {
+            $this->addFlash('error', 'Le dossier n’a pas pu être supprimé.');
         }
 
         return $this->redirectToRoute('app_folder_index');
     }
+
 }

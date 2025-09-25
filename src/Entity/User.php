@@ -49,6 +49,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->folders = new ArrayCollection();
+        $this->decks = new ArrayCollection();
     }
 
     // --- Getters/Setters ---
@@ -177,6 +178,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $folder->setUser(null); // orphanRemoval => supprimé si détaché
             }
         }
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Deck>
+     */
+    public function getDecks(): Collection
+    {
+        return $this->decks;
+    }
+
+    public function addDeck(Deck $deck): static
+    {
+        if (!$this->decks->contains($deck)) {
+            $this->decks->add($deck);
+            $deck->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeck(Deck $deck): static
+    {
+        if ($this->decks->removeElement($deck)) {
+            // set the owning side to null (unless already changed)
+            if ($deck->getUser() === $this) {
+                $deck->setUser(null);
+            }
+        }
+
         return $this;
     }
 }

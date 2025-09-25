@@ -50,6 +50,7 @@ security:
         ROLE_STUDENT: []
 
     access_control:
+        - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/teacher, roles: ROLE_TEACHER }
         - { path: ^/student, roles: ROLE_STUDENT }

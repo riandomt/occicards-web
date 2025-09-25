@@ -187,4 +187,17 @@ class Folder
         return '/' . implode('/', $parts);
     }
 
+    public function getPathElements(): array
+    {
+        $elements = [];
+        $current = $this;
+
+        while ($current !== null) {
+            array_unshift($elements, $current); // ajoute au début
+            $current = $current->getParent();
+        }
+
+        return $elements;
+    }
+
 }

@@ -4,28 +4,45 @@
 {% endblock %}
 
 {% block body %}
-	<table>
+	<div class="mb-3 p-3 border">
+		{% for item in pathElements %}
+			{% if not loop.last %}
+				<a href="{{ path('app_folder_show', {'id': item.id}) }}">{{ item.name }}</a>
+				/
+			{% else %}
+				{{ item.name }}
+			{% endif %}
+		{% endfor %}
+	</div>
+
+	<table class="table table-striped">
 		<thead>
-			<tr>
-				<th>Nom</th>
-				<th>Date de création</th>
-				<th>Date de modification</th>
-				<th>Actions</th>
+			<tr class="text-center">
+				<th scope="col">Nom</th>
+				<th scope="col">Date de création</th>
+				<th scope="col">Date de modification</th>
+				<th scope="col">Actions</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for child in children %}
 				<tr>
-					<td>{{ child.name }}</td>
+					<td>
+						<div class="d-flex flex-row justify-content-around">
+							<i class="bi bi-folder-fill text-warning"></i>
+							<a href="{{ path('app_folder_show', {'id': child.id}) }}">{{ child.name }}</a>
+						</div>
+					</td>
 					<td>{{ child.createdAt|date('d/m/Y H:i') }}</td>
 					<td>{{ child.updatedAt|date('d/m/Y H:i') }}</td>
-					<td>
-                        {% include "folder/update.html.twig" %}
-                        {% include "folder/delete.html.twig" %}
+					<td class="d-flex flex-row">
+						{% include "folder/update.html.twig" %}
+						{% include "folder/delete.html.twig" %}
 					</td>
 				</tr>
 			{% endfor %}
 		</tbody>
 	</table>
+
 	{% include "folder/create.html.twig" %}
 {% endblock %}
