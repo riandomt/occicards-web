@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DeckRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Deck
 {
     #[ORM\Id]
@@ -23,6 +24,12 @@ class Deck
     #[ORM\Column]
     private array $cards = [];
 
+    #[ORM\Column(type: 'datetime_immutable')]
+    private ?\DateTimeImmutable $created_at = null;
+
+    #[ORM\Column(type: 'datetime_immutable')]
+    private ?\DateTimeImmutable $updated_at = null;
+
     #[ORM\ManyToOne(inversedBy: 'decks')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -31,68 +38,43 @@ class Deck
     #[ORM\JoinColumn(nullable: false)]
     private ?Folder $folder = null;
 
-    public function getId(): ?int
+    // --- Lifecycle ---
+
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
     {
-        return $this->id;
+        $now = new \DateTimeImmutable();
+        $this->created_at ??= $now;
+        $this->updated_at ??= $now;
     }
 
-    public function getName(): ?string
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
     {
-        return $this->name;
+        $this->updated_at = new \DateTimeImmutable();
     }
 
-    public function setName(string $name): static
-    {
-        $this->name = $name;
+    // --- Getters/Setters ---
+    public function getId(): ?int { return $this->id; }
 
-        return $this;
-    }
+    public function getName(): ?string { return $this->name; }
+    public function setName(string $name): static { $this->name = $name; return $this; }
 
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
+    public function getDescription(): ?string { return $this->description; }
+    public function setDescription(string $description): static { $this->description = $description; return $this; }
 
-    public function setDescription(string $description): static
-    {
-        $this->description = $description;
+    public function getCards(): array { return $this->cards; }
+    public function setCards(array $cards): static { $this->cards = $cards; return $this; }
 
-        return $this;
-    }
+    public function getCreatedAt(): ?\DateTimeImmutable { return $this->created_at; }
+    public function setCreatedAt(\DateTimeImmutable $created_at): static { $this->created_at = $created_at; return $this; }
 
-    public function getCards(): array
-    {
-        return $this->cards;
-    }
+    public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updated_at; }
+    public function setUpdatedAt(\DateTimeImmutable $updated_at): static { $this->updated_at = $updated_at; return $this; }
 
-    public function setCards(array $cards): static
-    {
-        $this->cards = $cards;
+    public function getUser(): ?User { return $this->user; }
+    public function setUser(?User $user): static { $this->user = $user; return $this; }
 
-        return $this;
-    }
-
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(?User $user): static
-    {
-        $this->user = $user;
-
-        return $this;
-    }
-
-    public function getFolder(): ?Folder
-    {
-        return $this->folder;
-    }
-
-    public function setFolder(?Folder $folder): static
-    {
-        $this->folder = $folder;
-
-        return $this;
-    }
+    public function getFolder(): ?Folder { return $this->folder; }
+    public function setFolder(?Folder $folder): static { $this->folder = $folder; return $this; }
 }
