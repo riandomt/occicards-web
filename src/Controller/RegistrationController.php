@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Folder;
 use App\Entity\User;
 use App\Form\RegistrationFormType;
 use App\Security\EmailVerifier;
@@ -45,6 +46,15 @@ class RegistrationController extends AbstractController
             $user->setRoles([$chosen]); // ROLE_USER sera ajouté par getRoles()
 
             $entityManager->persist($user);
+
+            $folder = new Folder();
+            $folder->setName('home');
+            $folder->setParent(null);
+            $folder->setUser($user);
+            $folder->setCreatedAt(new \DateTimeImmutable());
+            $folder->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->persist($folder);
+            
             $entityManager->flush();
 
             // generate a signed url and email it to the user

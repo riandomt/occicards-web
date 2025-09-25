@@ -1,0 +1,27 @@
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateModal-{{ child.id }}">
+    <i class="bi bi-pencil-fill"></i>
+</button>
+
+<div class="modal fade" id="updateModal-{{ child.id }}" tabindex="-1" aria-labelledby="updateModalLabel-{{ child.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateModalLabel-{{ child.id }}">Modifier le dossier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            {{ form_start(updateForms[child.id], { action: path('app_folder_update', {id: child.id}), method: 'POST'}) }}
+            <div class="modal-body">
+                <input type="hidden" name="_method" value="PUT">
+                {{ form_row(updateForms[child.id].name) }}
+                {{ form_widget(updateForms[child.id].parentId, { value: folder.id }) }}
+                {{ form_widget(updateForms[child.id].userId, { value: user.id }) }}
+            </div>
+            <div class="modal-footer">
+                <button type="reset" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary">Modifier</button>
+            </div>
+            {{ form_end(updateForms[child.id]) }}
+        </div>
+    </div>
+</div>
