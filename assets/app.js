@@ -1,3 +1,7 @@
 import './bootstrap.js';
-import './scripts/format.js';
-import './scripts/cardForm.js';
+import { formatFileName, deckManager } from './scripts/functions.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+    formatFileName();
+    deckManager();
+});
