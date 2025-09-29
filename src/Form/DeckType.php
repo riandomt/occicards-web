@@ -33,14 +33,14 @@ class DeckType extends AbstractType
                     'placeholder' => 'cour de géographie'
                 ]
             ])
-->add('cards', TextType::class, [
-    'required' => false,
-    'data' => '{ name: , description: ,level:0, deck: {} }',
-    'attr' => [
-        'id' => 'cards',
-        'readonly' => true,
-    ],
-])
+            ->add('cards', HiddenType::class, [
+                'required' => false,
+                'data' => '{ name: , description: ,level:0, deck: {} }',
+                'attr' => [
+                    'id' => 'cards',
+                    'readonly' => true,
+                ],
+            ])
 
 
             ->add('parentId', HiddenType::class, [

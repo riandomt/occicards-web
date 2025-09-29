@@ -1,7 +1,9 @@
 import './bootstrap.js';
-import { formatFileName, deckManager } from './scripts/functions.js';
+import DeckView from './scripts/Deck/DeckView.js';
+import{ formatFileName } from './scripts/functions.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    const deckView = new DeckView();
+    deckView.create();
     formatFileName();
-    deckManager();
 });

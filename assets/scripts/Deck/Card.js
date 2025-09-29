@@ -1,33 +1,14 @@
 class Card {
-  constructor(id = 0, question, answer) {
-    this.setId(id);
+  constructor(question, answer) {
     this.setQuestion(question);
     this.setAnswer(answer);
   }
 
-  // --- id ---
-  getId() {
-    return this._id;
-  }
-  setId(id) {
-    this._id = id;
-  }
+  getQuestion() { return this._question; }
+  setQuestion(question) { this._question = question.trim(); }
 
-  // --- question ---
-  getQuestion() {
-    return this._question;
-  }
-  setQuestion(question) {
-    this._question = question;
-  }
-
-  // --- answer ---
-  getAnswer() {
-    return this._answer;
-  }
-  setAnswer(answer) {
-    this._answer = answer;
-  }
+  getAnswer() { return this._answer; }
+  setAnswer(answer) { this._answer = answer.trim(); }
 }
 
 export default Card;

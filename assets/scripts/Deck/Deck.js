@@ -37,13 +37,12 @@ class Deck {
   addCard(card) {
     this.generateId();
     const cards = this.getCards();
+
     const id = this.getId();
-
-    cards[id] = {
-      question: card.getQuestion(),
-      answer: card.getAnswer()
-    };
-
+    const question = card.getQuestion();
+    const answer = card.getAnswer();
+    console.log(id, question, answer);
+    cards[id] = { [question]: answer };
     this.setCards(cards);
 
     return id;
@@ -52,7 +51,7 @@ class Deck {
   updateCard(card) {
     const cards = this.getCards();
 
-    cards[card.id] = {
+    cards[card.getId()] = {
       question: card.getQuestion(),
       answer: card.getAnswer()
     };
