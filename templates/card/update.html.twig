@@ -1,16 +1,8 @@
-<div class="d-flex flex-row mt-3">
-	{{ form_widget(form.save, {'attr': {'class': 'btn btn-primary me-2'}}) }}
-
-    <button type="button" class="btn btn-primary"
-            data-bs-toggle="modal" data-bs-target="#createModal">
-        Ajouter une carte
-    </button>
-</div>
-<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="createModalLabel">Nouvelle carte</h5>
+				<h5 class="modal-title" id="updateModalLabel">Modifier la carte</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			
@@ -29,7 +21,7 @@
 				
 				<div class="modal-footer">
 					<button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-					<button type="button" id="btnCreateCard" class="btn btn-primary" >Créer</button>
+					<button type="button" id="btnUpdateCard" class="btn btn-primary" >Modifier</button>
 				</div>
 			</form>
 

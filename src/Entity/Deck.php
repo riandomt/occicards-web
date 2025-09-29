@@ -21,7 +21,7 @@ class Deck
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::JSON)]
     private array $cards = [];
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -64,7 +64,15 @@ class Deck
     public function setDescription(string $description): static { $this->description = $description; return $this; }
 
     public function getCards(): array { return $this->cards; }
-    public function setCards(array $cards): static { $this->cards = $cards; return $this; }
+public function setCards(array|string $cards): static
+{
+    if (is_string($cards)) {
+        $cards = json_decode($cards, true) ?? [];
+    }
+    $this->cards = $cards;
+
+    return $this;
+}
 
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->created_at; }
     public function setCreatedAt(\DateTimeImmutable $created_at): static { $this->created_at = $created_at; return $this; }

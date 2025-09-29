@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	{{ form_start(form) }}
+	{{ form_start(form, { action: path('app_deck_store'), method: 'POST'}) }}
 		{{ form_row(form.name) }}
 		{{ form_row(form.description) }}
 		{{ form_row(form.cards) }}
